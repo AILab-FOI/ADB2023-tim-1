@@ -2,6 +2,7 @@ package hr.foi_fon.api.services;
 
 import hr.foi_fon.api.models.User;
 import hr.foi_fon.api.repositories.UserRepository;
+import hr.foi_fon.api.utils.JWT;
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -18,6 +19,13 @@ import java.util.Map;
 public class UserService {
     @Autowired
     private UserRepository userRepository;
+
+    private JWT jwtUtils;
+
+    @Autowired
+    public UserService(JWT jwtUtils) {
+        this.jwtUtils = jwtUtils;
+    }
 
     public List<User> allUsers(){
         List<User> users = userRepository.findAll();
@@ -75,12 +83,17 @@ public class UserService {
 
         if (!checkPassword(password, user.getPassword())) {
             return new ResponseEntity<>(Map.of("error", "Incorrect password"), HttpStatus.UNAUTHORIZED);
-        } else {
-
-
-            Map<String, Object> response = Map.of("message", "Login successful");
-            return new ResponseEntity<>(response, HttpStatus.OK);
         }
+
+        String token = generateJwtToken(user.getEmail(),user.getId().toString());
+        if(token==null){
+            return new ResponseEntity<>("Cannot create JWT", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+
+
+        Map<String, Object> response = Map.of("message", "Login successful","token",token);
+        return new ResponseEntity<>(response, HttpStatus.OK);
+
     }
 
     public static String hashPassword(String plainTextPassword) {
@@ -93,6 +106,9 @@ public class UserService {
         BCrypt.Verifyer verifyer = BCrypt.verifyer();
         BCrypt.Result result = verifyer.verify(plainTextPassword.toCharArray(), hashedPassword.toCharArray());
         return result.verified;
+    }
+    public String generateJwtToken(String email,  String userId) {
+        return jwtUtils.generateToken(email, userId);
     }
 
 
