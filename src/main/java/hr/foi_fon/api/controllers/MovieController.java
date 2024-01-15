@@ -40,4 +40,29 @@ public class MovieController {
 
     }
 
+    @PostMapping("/watchlist/{movieId}")
+    public ResponseEntity<?> addToWatchlist(@PathVariable String movieId,@RequestHeader("Authorization") String token){
+        try{
+            boolean exists= movieService.movieExists(movieId);
+            if(!exists){
+                String errorMessage = "Movie with id: " + movieId + " is not found.";
+                return new ResponseEntity<>(errorMessage, HttpStatus.NOT_FOUND);
+            }else{
+                boolean isAdded;
+                 isAdded = movieService.addToWatchlist(movieId,token);
+                 if(isAdded){
+                     String successMessage = "Movie with id: " + movieId + " is added to watchlist";
+                     return new ResponseEntity<>(successMessage, HttpStatus.CREATED);
+                 }else{
+                     String errorMessage = "Movie with id: " + movieId + " is not added to watchlist.";
+                     return new ResponseEntity<>(errorMessage, HttpStatus.BAD_REQUEST);
+                 }
+
+            }
+        }catch(Exception ex){
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+
+    }
+
 }

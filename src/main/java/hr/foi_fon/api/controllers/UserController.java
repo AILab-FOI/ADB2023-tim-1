@@ -1,7 +1,9 @@
 package hr.foi_fon.api.controllers;
 
+import hr.foi_fon.api.dtos.MovieDto;
 import hr.foi_fon.api.models.User;
 import hr.foi_fon.api.services.UserService;
+import jakarta.websocket.server.PathParam;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -48,5 +50,7 @@ public class UserController {
             return new ResponseEntity<>("An error occurred", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
+
 
 }

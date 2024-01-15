@@ -139,4 +139,33 @@ public class MovieService {
 
         return userIdFromToken;
     }
+
+    public boolean addToWatchlist(String movieId, String token) {
+        ObjectId objectId = new ObjectId(movieId);
+        String userIdString=getUserIdFromToken(token);
+        ObjectId userId = new ObjectId(userIdString);
+        Optional<User> optionalUser = userRepository.findById(userId);
+        if(optionalUser.isPresent()){
+            User user = optionalUser.get();
+            List<ObjectId> watchlist = user.getWatchlist();
+            if (!watchlist.contains(objectId)) {
+                watchlist.add(objectId);
+                user.setWatchlist(watchlist);
+                userRepository.save(user);
+                return true;
+            }
+        }return false;
+
+    }
+
+    public boolean movieExists(String movieId) {
+        ObjectId objectId = new ObjectId(movieId);
+        Optional<Movie> optionalMovie = movieRepository.findById(objectId);
+        if(optionalMovie!=null){
+            return true;
+        }else{
+            return false;
+        }
+
+    }
 }
