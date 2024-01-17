@@ -48,6 +48,7 @@ public class MovieService {
         dto.setActors(convertToActorDto(movie.getActors()));
         dto.setDescription(movie.getDescription());
         dto.setDuration(movie.getDuration());
+        dto.setUrl(movie.getUrl());
         return dto;
     }
 

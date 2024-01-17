@@ -42,7 +42,7 @@ public class UserService {
         List<ObjectId> watchlistIds = (List<ObjectId>) payload.get("watchlist");
         List<ObjectId> historyIds = (List<ObjectId>) payload.get("history");
         List<ObjectId> reviewedMoviesIds = (List<ObjectId>) payload.get("reviewed_movies");
-        List<ObjectId> favoriteActorsIds = (List<ObjectId>) payload.get("favorite_actors");
+        List<Integer> favorite_decades = (List<Integer>) payload.get("favorite_decades");
         String dateOfBirthString = (String) payload.get("date_of_birth");
         LocalDate dateOfBirth = LocalDate.parse(dateOfBirthString);
 
@@ -59,6 +59,8 @@ public class UserService {
         user.setWatchlist(watchlistIds);
         user.setHistory(historyIds);
         user.setReviewed_movies(reviewedMoviesIds);
+        user.setLonger_than_2h((Boolean) payload.get("longer_than_2h"));
+        user.setFavorite_decades(favorite_decades);
 
 
         userRepository.insert(user);

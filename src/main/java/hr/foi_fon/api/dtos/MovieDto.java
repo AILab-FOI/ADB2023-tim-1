@@ -38,4 +38,6 @@ public class MovieDto {
 
     private Integer duration;
 
+    private String url;
+
 }
