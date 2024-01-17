@@ -59,7 +59,7 @@ public class UserService {
         user.setWatchlist(watchlistIds);
         user.setHistory(historyIds);
         user.setReviewed_movies(reviewedMoviesIds);
-        user.setFavorite_actors(favoriteActorsIds);
+
 
         userRepository.insert(user);
         return new ResponseEntity<>(Map.of("message","User added successfully"), HttpStatus.CREATED);

@@ -37,5 +37,7 @@ public class Movie {
 
     private String description;
 
-    private String duration;
+    private Integer duration;
+
+    private String url;
 }

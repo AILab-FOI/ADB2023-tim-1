@@ -36,6 +36,6 @@ public class MovieDto {
 
     private String description;
 
-    private String duration;
+    private Integer duration;
 
 }

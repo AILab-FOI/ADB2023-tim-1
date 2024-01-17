@@ -24,6 +24,11 @@ public class MovieController {
 
     }
 
+    @GetMapping("/recommendations")
+    private ResponseEntity<List<MovieDto>> getRecommendedMovies(@RequestHeader("Authorization") String token){
+        return new ResponseEntity<List<MovieDto>>(movieService.getRecommendedMovies(token), HttpStatus.OK);
+    }
+
     @GetMapping("/{movieId}")
     private ResponseEntity<?> getMovieDetails(@PathVariable String movieId,@RequestHeader("Authorization") String token){
         try{

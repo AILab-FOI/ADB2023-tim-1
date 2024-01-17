@@ -50,7 +50,9 @@ public class User {
 
         private List<ObjectId> reviewed_movies;
 
-        private List<ObjectId> favorite_actors;
+        private boolean longer_than_2h;
+
+        private List<Integer> favorite_decades;
 
 
 

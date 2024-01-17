@@ -10,9 +10,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.nio.charset.StandardCharsets;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.time.LocalDate;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -168,4 +167,90 @@ public class MovieService {
         }
 
     }
+
+    public List<MovieDto> getRecommendedMovies(String token) {
+        String userIdString=getUserIdFromToken(token);
+        ObjectId userId = new ObjectId(userIdString);
+        Optional<User> optionalUser = userRepository.findById(userId);
+        if(optionalUser.isPresent()){
+            User user = optionalUser.get();
+            List<ObjectId> preferences = user.getPreferences();
+            List<Integer> favorite_decades = user.getFavorite_decades();
+            Boolean longer_than_2h = user.isLonger_than_2h();
+            List<Movie> recommendedMovies = recommendMovies(preferences,favorite_decades,longer_than_2h);
+
+            return recommendedMovies.stream()
+                    .map(this::convertToDto)
+                    .collect(Collectors.toList());
+        }else{
+            return null;
+        }
+
+    }
+
+
+
+    public List<Movie> recommendMovies(List<ObjectId> preferences, List<Integer> favorite_decades, Boolean longer_than_2h) {
+        List<Movie> allMovies = movieRepository.findAll();
+        double primaryGenreWeight = 7.0;
+        double favoriteDecadeWeight = 5.0;
+        double secondaryGenreWeight = 3.0;
+        double durationWeight = 1.0;
+
+        Map<Movie, Double> movieScores = new HashMap<>();
+
+        for (Movie movie : allMovies) {
+            System.out.println("Movie" + movie.getTitle());
+            double score = 0.0;
+
+            if (preferences.contains(movie.getGenres().getPrimary())) {
+                score += primaryGenreWeight;
+                System.out.println("Primary Genre +7" );
+            }
+
+            if (movie.getGenres().getSecondary() != null) {
+                for (ObjectId secondaryGenre : movie.getGenres().getSecondary()) {
+                    if (preferences.contains(secondaryGenre)) {
+                        score += secondaryGenreWeight;
+                        System.out.println("Secondary Genre +3" );
+                        break;
+                    }
+                }
+            }
+
+            LocalDate movieReleaseDate = movie.getDate_release();
+            int movieDecade = movieReleaseDate.getYear() / 10 * 10;
+
+            if (favorite_decades.contains(movieDecade)) {
+                score += favoriteDecadeWeight;
+                System.out.println("Decade  +5" );
+            }
+
+            if ((longer_than_2h != null && longer_than_2h && movie.getDuration() > 120) ||
+                    (longer_than_2h != null && !longer_than_2h && movie.getDuration() < 120)) {
+                score += durationWeight;
+                System.out.println("Duration  +1" );
+            }
+
+
+            movieScores.put(movie, score);
+            System.out.println("Score"+score );
+            System.out.println("-------------" );
+        }
+
+        Map<Movie, Double> sortedMovieScores = movieScores.entrySet().stream()
+                .sorted(Map.Entry.<Movie, Double>comparingByValue().reversed())
+                .limit(8)
+                .collect(Collectors.toMap(
+                        Map.Entry::getKey,
+                        Map.Entry::getValue,
+                        (e1, e2) -> e1,
+                        LinkedHashMap::new
+                ));
+
+        return new ArrayList<>(sortedMovieScores.keySet());
+    }
+
+
+
 }
