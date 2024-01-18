@@ -178,7 +178,8 @@ public class MovieService {
             List<ObjectId> preferences = user.getPreferences();
             List<Integer> favorite_decades = user.getFavorite_decades();
             Boolean longer_than_2h = user.isLonger_than_2h();
-            List<Movie> recommendedMovies = recommendMovies(preferences,favorite_decades,longer_than_2h);
+            List<ObjectId> history = user.getHistory();
+            List<Movie> recommendedMovies = recommendMovies(preferences,favorite_decades,longer_than_2h, history);
 
             return recommendedMovies.stream()
                     .map(this::convertToDto)
@@ -191,14 +192,22 @@ public class MovieService {
 
 
 
-    public List<Movie> recommendMovies(List<ObjectId> preferences, List<Integer> favorite_decades, Boolean longer_than_2h) {
+    public List<Movie> recommendMovies(List<ObjectId> preferences, List<Integer> favorite_decades, Boolean longer_than_2h, List<ObjectId> history) {
         List<Movie> allMovies = movieRepository.findAll();
+        List<ObjectId> historyPrimaryGenres = new ArrayList<>();
         double primaryGenreWeight = 7.0;
         double favoriteDecadeWeight = 5.0;
         double secondaryGenreWeight = 3.0;
+        double historyPrimaryGenreWeight = 3.0;
+        double historySecondaryGenreWeight = 1.0;
         double durationWeight = 1.0;
 
         Map<Movie, Double> movieScores = new HashMap<>();
+
+        for (ObjectId historyMovieId : history) {
+            Optional<Movie> optionalHistoryMovie = movieRepository.findById(historyMovieId);
+            optionalHistoryMovie.ifPresent(historyMovie -> historyPrimaryGenres.add(historyMovie.getGenres().getPrimary()));
+        }
 
         for (Movie movie : allMovies) {
             System.out.println("Movie" + movie.getTitle());
@@ -214,6 +223,10 @@ public class MovieService {
                     if (preferences.contains(secondaryGenre)) {
                         score += secondaryGenreWeight;
                         System.out.println("Secondary Genre +3" );
+                        break;
+                    }else if(historyPrimaryGenres.contains(secondaryGenre)){
+                        score+= historySecondaryGenreWeight;
+                        System.out.println("History +1, user does not contain this genre in his preferences");
                         break;
                     }
                 }
@@ -231,6 +244,11 @@ public class MovieService {
                     (longer_than_2h != null && !longer_than_2h && movie.getDuration() < 120)) {
                 score += durationWeight;
                 System.out.println("Duration  +1" );
+            }
+
+            if(historyPrimaryGenres.contains(movie.getGenres().getPrimary()) && !preferences.contains(movie.getGenres().getPrimary())){
+                score+=historyPrimaryGenreWeight;
+                System.out.println("History +3, user does not contain this genre in his preferences");
             }
 
 
