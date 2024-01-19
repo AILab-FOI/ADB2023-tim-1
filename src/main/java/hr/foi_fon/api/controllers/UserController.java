@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
+@CrossOrigin(origins = "http://localhost:4200")
 @RequestMapping("/api/v1/users")
 public class UserController {
     @Autowired
@@ -25,7 +26,7 @@ public class UserController {
         return new ResponseEntity<List<User>>(userService.allUsers(), HttpStatus.OK);
     }
 
-    @CrossOrigin
+
     @PostMapping("/register")
     public ResponseEntity<Object> registerUser(@RequestBody Map<String, Object> payload) {
         try {
@@ -37,7 +38,7 @@ public class UserController {
 
 
     }
-    @CrossOrigin
+
     @PostMapping("/login")
     public ResponseEntity<Object> login(@RequestBody Map<String, Object> payload) {
         try {

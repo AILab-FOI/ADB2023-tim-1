@@ -12,6 +12,7 @@ import at.favre.lib.crypto.bcrypt.BCrypt;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -57,7 +58,13 @@ public class UserService {
         user.setDate_modified(LocalDateTime.now());
         user.setPreferences(preferenceIds);
         user.setWatchlist(watchlistIds);
-        user.setHistory(historyIds);
+        if(historyIds!=null){
+            user.setHistory(historyIds);
+        }else{
+            historyIds = new ArrayList<>();
+            user.setHistory(historyIds);
+        }
+
         user.setReviewed_movies(reviewedMoviesIds);
         user.setLonger_than_2h((Boolean) payload.get("longer_than_2h"));
         user.setFavorite_decades(favorite_decades);
@@ -87,7 +94,7 @@ public class UserService {
             return new ResponseEntity<>(Map.of("error", "Incorrect password"), HttpStatus.UNAUTHORIZED);
         }
 
-        String token = generateJwtToken(user.getEmail(),user.getId().toString());
+        String token = generateJwtToken(user.getEmail(),user.getId().toString(),user.getFirst_name());
         if(token==null){
             return new ResponseEntity<>("Cannot create JWT", HttpStatus.INTERNAL_SERVER_ERROR);
         }
@@ -109,8 +116,8 @@ public class UserService {
         BCrypt.Result result = verifyer.verify(plainTextPassword.toCharArray(), hashedPassword.toCharArray());
         return result.verified;
     }
-    public String generateJwtToken(String email,  String userId) {
-        return jwtUtils.generateToken(email, userId);
+    public String generateJwtToken(String email,  String userId, String firstName) {
+        return jwtUtils.generateToken(email, userId, firstName);
     }
 
 

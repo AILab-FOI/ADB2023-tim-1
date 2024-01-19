@@ -259,7 +259,7 @@ public class MovieService {
 
         Map<Movie, Double> sortedMovieScores = movieScores.entrySet().stream()
                 .sorted(Map.Entry.<Movie, Double>comparingByValue().reversed())
-                .limit(8)
+                .limit(14)
                 .collect(Collectors.toMap(
                         Map.Entry::getKey,
                         Map.Entry::getValue,
