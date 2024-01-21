@@ -54,11 +54,17 @@ public class MovieService {
         return dto;
     }
 
-    private String convertToDirectorDto(ObjectId director){
+    private String convertToDirectorDto(ObjectId director) {
         Optional<Director> optionalDirector = directorRepository.findById(director);
-        return optionalDirector.get().getName();
 
+        if (optionalDirector.isPresent()) {
+            return optionalDirector.get().getName();
+        } else {
+
+            return "Unknown Director";
+        }
     }
+
 
 
     private List<String> convertToActorDto(List<ObjectId> actors){
