@@ -335,7 +335,7 @@ public class MovieService {
                     break;
                 case "genre":
                     ObjectId genreId=new ObjectId((String)payload.get("genre"));
-                    currentResults=movieRepository.findByGenresPrimaryContaining(genreId);
+                    currentResults=movieRepository.findByGenresPrimary(genreId);
                     break;
 
             }
