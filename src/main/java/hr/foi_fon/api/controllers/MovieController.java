@@ -10,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @CrossOrigin(origins = "http://localhost:4200")
@@ -46,6 +47,12 @@ public class MovieController {
 
     }
 
+    @GetMapping("/watchlist/exists/{movieId}")
+    public ResponseEntity<?> existsInWatchList(@PathVariable String movieId,@RequestHeader("Authorization") String token){
+        ResponseEntity<Object> existsInWatchListResult=movieService.existsInWatchList(movieId,token);
+        return new ResponseEntity<>(existsInWatchListResult.getBody(),existsInWatchListResult.getHeaders(),existsInWatchListResult.getStatusCode());
+    }
+
     @PostMapping("/watchlist/{movieId}")
     public ResponseEntity<?> addToWatchlist(@PathVariable String movieId,@RequestHeader("Authorization") String token){
         try{
@@ -54,21 +61,35 @@ public class MovieController {
                 String errorMessage = "Movie with id: " + movieId + " is not found.";
                 return new ResponseEntity<>(errorMessage, HttpStatus.NOT_FOUND);
             }else{
-                boolean isAdded;
-                 isAdded = movieService.addToWatchlist(movieId,token);
-                 if(isAdded){
-                     String successMessage = "Movie with id: " + movieId + " is added to watchlist";
-                     return new ResponseEntity<>(successMessage, HttpStatus.CREATED);
-                 }else{
-                     String errorMessage = "Movie with id: " + movieId + " is not added to watchlist.";
-                     return new ResponseEntity<>(errorMessage, HttpStatus.BAD_REQUEST);
+
+
+                     ResponseEntity<Object> addToWatchListResult = movieService.addToWatchlist(movieId,token);
+                     return new ResponseEntity<>(addToWatchListResult.getBody(), addToWatchListResult.getHeaders(), addToWatchListResult.getStatusCode());
+
+
                  }
 
-            }
+
         }catch(Exception ex){
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
+    }
+
+    @DeleteMapping("/watchlist/remove/{movieId}")
+    public ResponseEntity<?> removeFromWatchlist(@PathVariable String movieId, @RequestHeader("Authorization") String token){
+        ResponseEntity<Object> removeFromWatchListResult=movieService.removeFromWatchList(movieId,token);
+        return new ResponseEntity<>(removeFromWatchListResult.getBody(),removeFromWatchListResult.getHeaders(),removeFromWatchListResult.getStatusCode());
+    }
+
+    @PostMapping("/search")
+    public ResponseEntity<?> searchMovies(@RequestBody Map<String, Object> payload) {
+        try {
+            List<MovieDto> movieDtoList = movieService.searchMovies(payload);
+            return new ResponseEntity<>(movieDtoList, HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>("An error occurred while processing the request", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
 }

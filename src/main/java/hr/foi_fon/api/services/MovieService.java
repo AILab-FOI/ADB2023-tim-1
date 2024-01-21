@@ -7,6 +7,8 @@ import hr.foi_fon.api.repositories.*;
 import org.bson.types.ObjectId;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.nio.charset.StandardCharsets;
@@ -140,7 +142,7 @@ public class MovieService {
         return userIdFromToken;
     }
 
-    public boolean addToWatchlist(String movieId, String token) {
+    public ResponseEntity<Object> addToWatchlist(String movieId, String token) {
         ObjectId objectId = new ObjectId(movieId);
         String userIdString=getUserIdFromToken(token);
         ObjectId userId = new ObjectId(userIdString);
@@ -152,9 +154,13 @@ public class MovieService {
                 watchlist.add(objectId);
                 user.setWatchlist(watchlist);
                 userRepository.save(user);
-                return true;
+                return new ResponseEntity<>(Map.of("message","Movie added to watchlist"), HttpStatus.CREATED);
+            }else{
+                return new ResponseEntity<>(Map.of("error","Movie not added to watchlist"), HttpStatus.BAD_REQUEST);
             }
-        }return false;
+        }else{
+            return new ResponseEntity<>(Map.of("error","User does not exist"), HttpStatus.BAD_REQUEST);
+        }
 
     }
 
@@ -224,7 +230,7 @@ public class MovieService {
                         score += secondaryGenreWeight;
                         System.out.println("Secondary Genre +3" );
                         break;
-                    }else if(historyPrimaryGenres.contains(secondaryGenre)){
+                    }else if(historyPrimaryGenres.contains(secondaryGenre)&& !preferences.contains(movie.getGenres().getPrimary())){
                         score+= historySecondaryGenreWeight;
                         System.out.println("History +1, user does not contain this genre in his preferences");
                         break;
@@ -271,5 +277,80 @@ public class MovieService {
     }
 
 
+    public ResponseEntity<Object> removeFromWatchList(String movieId, String token) {
+        ObjectId objectId = new ObjectId(movieId);
+        String userIdString=getUserIdFromToken(token);
+        ObjectId userId = new ObjectId(userIdString);
+        Optional<User> optionalUser = userRepository.findById(userId);
+        if(optionalUser.isPresent()){
+            User user = optionalUser.get();
+            List<ObjectId> watchlist = user.getWatchlist();
+            if(watchlist.contains(objectId)){
+                watchlist.remove(objectId);
+                user.setWatchlist(watchlist);
+                userRepository.save(user);
+                return new ResponseEntity<>(Map.of("message","Movie removed from watchlist"), HttpStatus.NO_CONTENT);
 
+            }else{
+                return new ResponseEntity<>(Map.of("message","Movie is not removed from watchlist"), HttpStatus.BAD_REQUEST);
+            }
+        }else{
+            return new ResponseEntity<>(Map.of("message","Movie is not removed from watchlist"), HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    public ResponseEntity<Object> existsInWatchList(String movieId, String token) {
+        ObjectId objectId = new ObjectId(movieId);
+        String userIdString=getUserIdFromToken(token);
+        ObjectId userId = new ObjectId(userIdString);
+        Optional<User> optionalUser = userRepository.findById(userId);
+        if(optionalUser.isPresent()){
+            User user = optionalUser.get();
+            List<ObjectId> watchlist = user.getWatchlist();
+            if(watchlist.contains(objectId)){
+                return new ResponseEntity<>(Map.of("message","Movie exists in  watchlist"), HttpStatus.OK);
+            }else{
+                return new ResponseEntity<>(Map.of("message","Movie does not exist in watchlist"), HttpStatus.NOT_FOUND);
+            }
+        }else{
+            return new ResponseEntity<>(Map.of("message","Movie is not removed from watchlist"), HttpStatus.BAD_REQUEST);
+        }
+
+    }
+
+    public List<MovieDto> searchMovies(Map<String, Object> payload) {
+        if (payload == null || payload.isEmpty()) {
+            List<Movie> allMovies = movieRepository.findAll();
+            return allMovies.stream()
+                    .map(this::convertToDto)
+                    .collect(Collectors.toList());
+        }
+        List<Movie> searchResults=null;
+        for(String key : payload.keySet()){
+            List<Movie> currentResults=new ArrayList<>();
+            switch(key){
+                case "title":
+                    String movieTitle=(String)payload.get("title");
+                    currentResults=movieRepository.findByTitleContainingIgnoreCase(movieTitle);
+                    break;
+                case "genre":
+                    ObjectId genreId=new ObjectId((String)payload.get("genre"));
+                    currentResults=movieRepository.findByGenresPrimaryContaining(genreId);
+                    break;
+
+            }
+            if(searchResults==null){
+                searchResults=currentResults;
+            }else{
+                searchResults.retainAll(currentResults);
+            }
+        }
+        if(searchResults==null){
+            return Collections.emptyList();
+        }
+        return searchResults.stream()
+                .map(this::convertToDto)
+                .collect(Collectors.toList());
+
+    }
 }
