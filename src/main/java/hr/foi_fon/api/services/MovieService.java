@@ -359,4 +359,26 @@ public class MovieService {
                 .collect(Collectors.toList());
 
     }
+
+    public List<MovieDto> getMoviesFromWatchList(String token) {
+        String userIdString=getUserIdFromToken(token);
+        ObjectId userId = new ObjectId(userIdString);
+        Optional<User> optionalUser = userRepository.findById(userId);
+        if(optionalUser.isPresent()) {
+            User user = optionalUser.get();
+            List<ObjectId> watchlist = user.getWatchlist();
+            if(!watchlist.isEmpty()){
+                List<Movie> moviesfromWatchlist=movieRepository.findAllById(watchlist);
+                return moviesfromWatchlist.stream()
+                        .map(this::convertToDto)
+                        .collect(Collectors.toList());
+            }else{
+                return null;
+            }
+
+        }else{
+            return null;
+        }
+
+    }
 }

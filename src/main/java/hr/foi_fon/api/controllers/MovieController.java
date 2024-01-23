@@ -53,6 +53,14 @@ public class MovieController {
         return new ResponseEntity<>(existsInWatchListResult.getBody(),existsInWatchListResult.getHeaders(),existsInWatchListResult.getStatusCode());
     }
 
+    @GetMapping("/watchlist")
+    public ResponseEntity<?> getMoviesFromWatchlist(@RequestHeader("Authorization") String token){
+        List<MovieDto> moviesFromWatchList=movieService.getMoviesFromWatchList(token);
+        return new ResponseEntity<List<MovieDto>>(moviesFromWatchList,HttpStatus.OK);
+    }
+
+
+
     @PostMapping("/watchlist/{movieId}")
     public ResponseEntity<?> addToWatchlist(@PathVariable String movieId,@RequestHeader("Authorization") String token){
         try{
@@ -91,5 +99,6 @@ public class MovieController {
             return new ResponseEntity<>("An error occurred while processing the request", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
 
 }
