@@ -57,12 +57,18 @@ public class UserService {
         user.setDate_created(LocalDateTime.now());
         user.setDate_modified(LocalDateTime.now());
         user.setPreferences(preferenceIds);
-        user.setWatchlist(watchlistIds);
+
         if(historyIds!=null){
             user.setHistory(historyIds);
         }else{
             historyIds = new ArrayList<>();
             user.setHistory(historyIds);
+        }
+        if(watchlistIds!=null){
+            user.setWatchlist(watchlistIds);
+        }else{
+            watchlistIds = new ArrayList<>();
+            user.setWatchlist(watchlistIds);
         }
 
         user.setReviewed_movies(reviewedMoviesIds);
